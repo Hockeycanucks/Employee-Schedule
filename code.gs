@@ -668,6 +668,7 @@ function employeeVal(startDate) {
   var set = ss.getSheetByName('Settings');
   var s = ss.getSheetByName(startDate);
   
+  // Find the first day.
   var row = 2;
   while (set.getRange(row, 1).getValue()) {
     row++;

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<p>
+Enter the first and last day of the next pay period.
+</p>
+
+<form action="action_page.php">
+  Start:
+  <input type="date" name="start" id="start">
+  End:
+  <input type="date" name="end" id="end">
+</form>
+
+<br>
+<button onmouseup="monthYear()">OK</button>
+<button onmouseup="closeDia()">Close</button>
+
+<script>
+  window.closeDia = function() {
+    google.script.host.close();
+  };
+</script>
+
+<script type="text/javascript">
+  window.monthYear = function() {
+    var start = new Date();
+    start = document.getElementById("start").value;
+    var end = new Date();
+    end = document.getElementById("end").value;
+    google.script.run.calcPay(start.toString(), end.toString());
+    google.script.host.close();
+  };
+</script>
+
+</body>
+</html>

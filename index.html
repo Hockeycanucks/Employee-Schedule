@@ -1,0 +1,38 @@
+  <select id="month" onchange="">
+    <option value="January">January</option>
+    <option value="February">February</option>
+    <option value="March">March</option>
+    <option value="April">April</option>
+    <option value="May">May</option>
+    <option value="June">June</option>
+    <option value="July">July</option>
+    <option value="August">August</option>
+    <option value="September">September</option>
+    <option value="October">October</option>
+    <option value="November">November</option>
+    <option value="December">December</option>
+  </select>
+  
+  Year:
+<input size="4" type="text" name="year" id="year" maxlength="4" min="2000" value="2016">
+<br>
+  
+<br>
+
+<button onmouseup="monthYear()">OK</button>
+<button onmouseup="closeDia()">Close</button>
+
+<script>
+  window.closeDia = function() {
+    google.script.host.close();
+  };
+</script>
+
+<script>
+  window.monthYear = function() {
+    var month = document.getElementById("month").value;
+    var year = document.getElementById("year").value;
+    google.script.run.createCal(month + ' ' + year);
+    google.script.host.close();
+  };
+</script>

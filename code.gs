@@ -130,6 +130,13 @@ function createEmployeeList(startDate) {
     var workDays = [false,false,false,false,false,false,false];
     var workDaysSet = setting.getRange(row, 2).getValue().split(',');
     
+    // Test if there is an issue with the work days.
+    if (testWorkDays(workDaysSet, name)) {
+      setting.getRange(row, 2).setBackground('red');
+    } else {
+      setting.getRange(row, 2).setBackground('white');
+    }
+    
     //Find which days an employee works.
     var j = 0;
     for (var i=0; i<workDays.length; i++) {
@@ -742,7 +749,24 @@ function addEmployee() {
   
   // Add a new template to the current sheet.
   ppTemplate(s.getSheetName());
-  
+}
+
+/**
+* Test if an array of work days is in the correct format.
+*
+* @param {String[]} workDayArray The array of works days.
+* @param {String} name The name of the employee.
+* @return {Boolean} True is there was an issue found.
+*/
+function testWorkDays(workDayArray, name) {
+  if (workDayArray.length <= 1 && workDayArray[0] == '') return false;
+  for (var i=0; i<workDayArray.length; i++) {
+    if (workDayArray[i].length != 2) {
+      Browser.msgBox('Employee ' + name + ' has a imporperly formated Work Day feild.');
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -752,4 +776,6 @@ function test() {
   //var startDate = 'February 2016';
   //addHours(startDate);
   //deletePayPeriod(2)
+  //var workDaysSet = SpreadsheetApp.getActive().getSheetByName('Settings').getRange(row, 2).getValue().split(',');
+  createCal('May 2016');
 }

@@ -392,9 +392,6 @@ function getSheetDate(date) {
 * @customfunction
 */
 function calcPayFormula(name, startPay, endPay, startRange, endRange) {
-  //Logger.log(startRange);  
-  //Logger.log(endRange);
-
   var ss = SpreadsheetApp.getActive()
   
   // Date Object for the start and ending dates.
@@ -771,6 +768,174 @@ function testWorkDays(workDayArray, name) {
   return false;
 }
 
+
+/**
+* Find the Days an employee has worked in a given time period.
+*
+* @param {String} name The name of the employee you want to find the days of.
+* @param {String} startCheck The start of the period to check.
+* @param {String} endCheck The end of period to check.
+* @param {String[][]} startRange The starting calendar range.
+* @param {String[][]} endRange The range of the ending calendar range.
+* @return {Number} The amount of days the employee has worked.
+* @customfunction
+*/
+function holDayChecker(name, startCheck, endCheck, startRange, endRange) {
+  var ss = SpreadsheetApp.getActive()
+  
+  // Date Object for the start and ending dates.
+  var startDate = new Date(startCheck),
+      endDate = new Date(endCheck);
+  
+  // Use the dates to find the start and end sheet names.
+  var sSheetName = getSheetDate(startDate),
+      eSheetName = getSheetDate(endDate);
+  
+  // Get the two sheets that need to be processed.
+  var sSheet = ss.getSheetByName(sSheetName),
+      eSheet = ss.getSheetByName(eSheetName),
+      curSheet = sSheet;
+
+  // Get the values of the start and end calendars
+  var startCal = startRange,
+      endCal = endRange,
+      curCal = startCal;
+  
+  // Find the last day of the starting sheet.
+  // Only needed if the pay period is over two months.
+  var lastDay = monthLastDay(sSheetName);
+  
+  // Total days the employee has worked.
+  var totalDays = 0;
+  
+  var row = 2,
+      col = 0,
+      rowReset = row;
+  var locked = false,
+      inPay = false;
+  while (!locked) {
+    rowReset = row;
+    // End when the last day has been hit.
+    if (curCal[row-1][col] == endDate.getDate() && curSheet.getName() == eSheet.getName()) locked = true;
+    
+    if (startCal[row-1][col] == startDate.getDate()) {
+      inPay = true;
+    }
+    
+    // Only check hours while in the pay period.
+    if(inPay) {
+      while (row < rowReset + 8) {
+        if (curCal[row][col] == name && curCal[row][col+1] != '') {
+          totalDays++;
+          row = rowReset;
+          break;
+        } else {
+          row++;
+        }
+      }
+    }
+    
+    // Reset the row back to the top.
+    row = rowReset;    
+    // Change sheets at the end of the month.
+    if (startCal[row-1][col] == lastDay) {
+      curSheet = eSheet;
+      curCal = endCal;
+      row = 2;
+      col = 0;
+      rowReset = row;
+    // At the end of a calendar column go to the next row.
+    } else {
+      col += 2;
+      if (col > 12) {
+        col = 0;
+        row += 10;
+        rowReset = row;
+      }
+    }
+  }
+  
+  return totalDays;
+}
+
+/**
+* Add the pay period formula to the spreadsheet.
+*/
+function holDayCalc(startCheck, endCheck) {
+  var ss = SpreadsheetApp.getActive();
+  
+  var startArray = startCheck.split('-');
+  var endArray = endCheck.split('-');
+  
+  var startDate = new Date(startArray[0], startArray[1]-1, startArray[2], 0, 0, 0, 0),
+      endDate = new Date(endArray[0], endArray[1]-1, endArray[2], 0, 0, 0, 0);
+  
+  // Use the dates to find the start and end sheet names.
+  var sSheetName = getSheetDate(startDate),
+      eSheetName = getSheetDate(endDate);
+  
+  var sStart = ss.getSheetByName(sSheetName);
+  var sEnd = ss.getSheetByName(eSheetName);
+  
+  var startCal = getCalValues(sSheetName),
+      endCal = getCalValues(eSheetName);
+  
+  var sCalA = 'A1:N' + startCal.length;
+  var eCalA = 'A1:N' + endCal.length;
+  
+  
+  var emList = createEmployeeList();
+  
+  var row = 57;
+  if (sEnd.getRange(52, 1).getValue()) row = 67;
+  var col = 12;
+  
+  // Add the start and End of the pay period to the spreadsheet;
+  sEnd.getRange(row-2, col).setValue(startCheck).setNumberFormat("MMM d, yyyy");
+  sEnd.getRange(row-2, col+2).setValue(endCheck).setNumberFormat("MMM d, yyyy");
+  
+  //Get the A1 notation from start and end pay feilds.
+  var sPayA = sEnd.getRange(row-2, col).getA1Notation(),
+      ePayA = sEnd.getRange(row-2, col+2).getA1Notation();
+  
+  var formulas = new Array(emList.length);
+  
+  // Add formulas to the the array;
+  for (var i=0, rowi = row; i<emList.length; i++, rowi++) {
+    formulas[i] = ["=calcPayFormula(A" + rowi + "," + sPayA + "," + ePayA + ",'" + sSheetName + "'!" + sCalA + ",'" + eSheetName + "'!" + eCalA + ")"];
+  }
+  // Add the formulas to check total hours worked to the calendar.
+  sEnd.getRange(row, col, emList.length, 1).setFormulas(formulas).setHorizontalAlignment('right');
+  
+  // Overight the formulas array to store the days worked.
+  for (var i=0, rowi = row; i<emList.length; i++, rowi++) {
+    formulas[i] = ["=holDayChecker(K" + rowi + "," + sPayA + "," + ePayA + ",'" + sSheetName + "'!" + sCalA + ",'" + eSheetName + "'!" + eCalA + ")"];
+  }
+  sEnd.getRange(row, col+1, emList.length, 1).setFormulas(formulas).setHorizontalAlignment('right');
+  
+  //Overight the formulas array once again to store the very small average formula;
+  for (var i=0, rowi = row; i<emList.length; i++, rowi++) {
+    formulas[i] = ["=customDivison(R[" + 0 + "]C[" + -2 + "],R[" + 0 + "]C[" + -1 + "])"];
+  }
+  sEnd.getRange(row, col+2, emList.length, 1).setFormulasR1C1(formulas).setHorizontalAlignment('right').setNumberFormat('0.00');
+}
+
+/**
+* A custom divsion function because it's way better that dividing by zero equals zero!.
+*
+* @param {number} value1 The dividend.
+* @param {number} value2 The divisor.
+* @return {number} The quotient.
+* @customFunction
+*/
+function customDivison(value1, value2) {
+  if (value2 == 0) {
+    return 0;
+  } else {
+    return value1/value2;
+  }
+}
+
 /**
 * Sets up the section for calculated days worked for holiday pay.
 *
@@ -820,5 +985,6 @@ function test() {
   //deletePayPeriod(2)
   //var workDaysSet = SpreadsheetApp.getActive().getSheetByName('Settings').getRange(row, 2).getValue().split(',');
   //createCal('May 2016');
-  holPayTemp('May 2016');
+  //holPayTemp('May 2016');
+  holDayCalc('2016-5-1', '2016-5-30')
 }

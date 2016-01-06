@@ -102,6 +102,8 @@ function holDoGet() {
 function createCal(startDate) {
   createSheet_(startDate);
   
+  for(var i=1; i<=14; i++) SpreadsheetApp.getActiveSheet().setColumnWidth(i, 85);
+  
   var month = startDate.split(" ");
   addDayNumbers(findDay_(startDate), month[0], month[1]);
   
@@ -600,8 +602,8 @@ function ppTemplate(startDate) {
     s.getRange(stl-2, i*2, 1, 2).merge().setFontWeight('bold').setHorizontalAlignment('center').setValue('Pay Period ' + i).
     setBorder(true, true, true, true, null, null).setBackground('#336600').setFontColor('white');
     s.getRange(stl-1, i*2, 2, 2).setBorder(true, true, true, true, null, null);
-    s.getRange(stl-1, i*2).setValue('Start');
-    s.getRange(stl-1, i*2+1).setValue('End');
+    s.getRange(stl-1, i*2).setValue('Start').setFontWeight('bold');
+    s.getRange(stl-1, i*2+1).setValue('End').setFontWeight('bold');
     s.getRange(stl+1, i*2, emList.length, 2).mergeAcross().setBorder(true, true, true, true, null, null).setHorizontalAlignment('right');
   }
   
@@ -997,6 +999,7 @@ function test() {
   //deletePayPeriod(2)
   //var workDaysSet = SpreadsheetApp.getActive().getSheetByName('Settings').getRange(row, 2).getValue().split(',');
   //createCal('May 2016');
-  //holPayTemp('May 2016');
+  for(var i=1; i<=14; i++) SpreadsheetApp.getActiveSheet().setColumnWidth(i, 85);
+  holPayTemp('January 2016');
   //holDayCalc('2016-5-1', '2016-5-30')
 }

@@ -71,6 +71,8 @@ function onOpen() {
               .addItem('Pay Period 3', 'rePPThree'))
   .addSeparator()
   .addItem('Add New Employee', 'addEmployee')
+  .addSeparator()
+  .addItem('Holiday Time Checker', 'holDoGet')
   .addToUi();
 }
 
@@ -82,6 +84,15 @@ function doGet() {
       .setHeight(80);
   SpreadsheetApp.getUi()
       .showModalDialog(htmlDlg, 'Enter the Month and Year');
+}
+
+function holDoGet() {
+  var htmlDlg = HtmlService.createHtmlOutputFromFile('holiday')
+      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
+      .setWidth(400)
+      .setHeight(125);
+  SpreadsheetApp.getUi()
+      .showModalDialog(htmlDlg, 'Calculate Holiday Pay');
 }
 
 /**
@@ -890,6 +901,7 @@ function holDayCalc(startCheck, endCheck) {
   if (sEnd.getRange(52, 1).getValue()) row = 67;
   var col = 12;
   
+  
   // Add the start and End of the pay period to the spreadsheet;
   sEnd.getRange(row-2, col).setValue(startCheck).setNumberFormat("MMM d, yyyy");
   sEnd.getRange(row-2, col+2).setValue(endCheck).setNumberFormat("MMM d, yyyy");
@@ -986,5 +998,5 @@ function test() {
   //var workDaysSet = SpreadsheetApp.getActive().getSheetByName('Settings').getRange(row, 2).getValue().split(',');
   //createCal('May 2016');
   //holPayTemp('May 2016');
-  holDayCalc('2016-5-1', '2016-5-30')
+  //holDayCalc('2016-5-1', '2016-5-30')
 }

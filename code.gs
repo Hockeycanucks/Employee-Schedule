@@ -103,6 +103,8 @@ function createCal(startDate) {
   employeeVal(startDate);
   
   ppTemplate(startDate);
+  
+  holPayTemp(startDate);
 }
 
 function addPayPeriod(){
@@ -131,11 +133,11 @@ function createEmployeeList(startDate) {
     var workDaysSet = setting.getRange(row, 2).getValue().split(',');
     
     // Test if there is an issue with the work days.
-    if (testWorkDays(workDaysSet, name)) {
-      setting.getRange(row, 2).setBackground('red');
-    } else {
-      setting.getRange(row, 2).setBackground('white');
-    }
+//    if (testWorkDays(workDaysSet, name)) {
+//      setting.getRange(row, 2).setBackground('red');
+//    } else {
+//      setting.getRange(row, 2).setBackground('white');
+//    }
     
     //Find which days an employee works.
     var j = 0;
@@ -770,6 +772,46 @@ function testWorkDays(workDayArray, name) {
 }
 
 /**
+* Sets up the section for calculated days worked for holiday pay.
+*
+* @param {String} startDate The name of the sheet to put the template on.
+*/
+function holPayTemp(startDate) {
+  var ss = SpreadsheetApp.getActive(),
+      s = ss.getSheetByName(startDate);
+  
+  var emList = createEmployeeList('Settings');
+  
+  var row = 54;
+  if (s.getRange(52, 1).getValue()) row = 64;
+  
+  // Merge the required cells and put the correct borders down.
+  s.getRange(row, 11, 1, 4).merge().setBorder(true, true, true, true, false, false).setHorizontalAlignment('center');
+  s.getRange(row+1, 11, 1, 2).setBorder(true, true, true, true, false, false);
+  s.getRange(row+1, 13, 1, 2).setBorder(true, true, true, true, false, false);
+  s.getRange(row+2, 11, 1, 4).setBorder(true, true, true, true, true, false);
+  s.getRange(row+3, 11, emList.length, 4).setBorder(true, true, true, true, true, false);
+  
+  var range = s.getRange(row, 11, 3, 4);
+  // Set the values and format them in the perment cells.
+  range.setValues([['Holiday Time Calculator','','',''], 
+                   ['Start','','End',''], 
+                   ['Employees','Total Hours','Days Worked','Average']]);
+  range.setBackgrounds([['#336600','','',''],['','','',''],['#336600','','','']]);
+  range.setFontColors([['white','','',''],['','','',''],['white','','','']]);
+  range.setFontWeights([['bold','','',''],['bold','normal','bold','normal'],['bold','bold','bold','bold']])
+  
+  range = s.getRange(row+3, 11, emList.length)
+  var values = range.getValues();
+  
+  for (var i=0; i<emList.length; i++) {
+    values[i][0] = emList[i].name;
+  }
+  
+  range.setValues(values);
+}
+
+/**
 * A test function to help test new methods for debugging.
 */
 function test() {
@@ -777,5 +819,6 @@ function test() {
   //addHours(startDate);
   //deletePayPeriod(2)
   //var workDaysSet = SpreadsheetApp.getActive().getSheetByName('Settings').getRange(row, 2).getValue().split(',');
-  createCal('May 2016');
+  //createCal('May 2016');
+  holPayTemp('May 2016');
 }

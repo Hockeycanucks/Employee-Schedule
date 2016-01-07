@@ -758,9 +758,13 @@ function addEmployee() {
   var row = 54;
   if (s.getRange(52, 1).getValue()) row = 64;
   s.getRange(row, 1, row+emList.length+2, 7).clearFormat();
+  s.getRange(row, 11, emList.length+2, 4).clearFormat();
   
   // Add a new template to the current sheet.
   ppTemplate(s.getSheetName());
+  holPayTemp(s.getSheetName());
+  
+  
 }
 
 /**
@@ -875,7 +879,8 @@ function holDayChecker(name, startCheck, endCheck, startRange, endRange) {
 * Add the pay period formula to the spreadsheet.
 */
 function holDayCalc(startCheck, endCheck) {
-  var ss = SpreadsheetApp.getActive();
+  var ss = SpreadsheetApp.getActive(),
+      s = ss.getActiveSheet();
   
   var startArray = startCheck.split('-');
   var endArray = endCheck.split('-');
@@ -900,13 +905,13 @@ function holDayCalc(startCheck, endCheck) {
   var emList = createEmployeeList();
   
   var row = 57;
-  if (sEnd.getRange(52, 1).getValue()) row = 67;
+  if (s.getRange(52, 1).getValue()) row = 67;
   var col = 12;
   
   
   // Add the start and End of the pay period to the spreadsheet;
-  sEnd.getRange(row-2, col).setValue(startCheck).setNumberFormat("MMM d, yyyy");
-  sEnd.getRange(row-2, col+2).setValue(endCheck).setNumberFormat("MMM d, yyyy");
+  s.getRange(row-2, col).setValue(startCheck).setNumberFormat("MMM d, yyyy");
+  s.getRange(row-2, col+2).setValue(endCheck).setNumberFormat("MMM d, yyyy");
   
   //Get the A1 notation from start and end pay feilds.
   var sPayA = sEnd.getRange(row-2, col).getA1Notation(),
@@ -919,19 +924,19 @@ function holDayCalc(startCheck, endCheck) {
     formulas[i] = ["=calcPayFormula(A" + rowi + "," + sPayA + "," + ePayA + ",'" + sSheetName + "'!" + sCalA + ",'" + eSheetName + "'!" + eCalA + ")"];
   }
   // Add the formulas to check total hours worked to the calendar.
-  sEnd.getRange(row, col, emList.length, 1).setFormulas(formulas).setHorizontalAlignment('right');
+  s.getRange(row, col, emList.length, 1).setFormulas(formulas).setHorizontalAlignment('right');
   
   // Overight the formulas array to store the days worked.
   for (var i=0, rowi = row; i<emList.length; i++, rowi++) {
     formulas[i] = ["=holDayChecker(K" + rowi + "," + sPayA + "," + ePayA + ",'" + sSheetName + "'!" + sCalA + ",'" + eSheetName + "'!" + eCalA + ")"];
   }
-  sEnd.getRange(row, col+1, emList.length, 1).setFormulas(formulas).setHorizontalAlignment('right');
+  s.getRange(row, col+1, emList.length, 1).setFormulas(formulas).setHorizontalAlignment('right');
   
   //Overight the formulas array once again to store the very small average formula;
   for (var i=0, rowi = row; i<emList.length; i++, rowi++) {
     formulas[i] = ["=customDivison(R[" + 0 + "]C[" + -2 + "],R[" + 0 + "]C[" + -1 + "])"];
   }
-  sEnd.getRange(row, col+2, emList.length, 1).setFormulasR1C1(formulas).setHorizontalAlignment('right').setNumberFormat('0.00');
+  s.getRange(row, col+2, emList.length, 1).setFormulasR1C1(formulas).setHorizontalAlignment('right').setNumberFormat('0.00');
 }
 
 /**
@@ -999,7 +1004,8 @@ function test() {
   //deletePayPeriod(2)
   //var workDaysSet = SpreadsheetApp.getActive().getSheetByName('Settings').getRange(row, 2).getValue().split(',');
   //createCal('May 2016');
-  for(var i=1; i<=14; i++) SpreadsheetApp.getActiveSheet().setColumnWidth(i, 85);
-  holPayTemp('January 2016');
+  //for(var i=1; i<=14; i++) SpreadsheetApp.getActiveSheet().setColumnWidth(i, 85);
+  //holPayTemp('January 2016');
   //holDayCalc('2016-5-1', '2016-5-30')
+  //Logger.log(SpreadsheetApp.getActiveSheet().getRange('L65').getValue())
 }

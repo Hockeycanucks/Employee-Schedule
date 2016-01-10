@@ -54,12 +54,6 @@ Employee.prototype = {
 *
 */
 function onOpen() {
-//  var ss = SpreadsheetApp.getActiveSpreadsheet();
-//  var menuItems = [
-//    {name: 'New Month' , functionName: 'doGet'},
-//    {name: 'Add Pay Period', functionName: 'addPayPeriod'}];
-//  
-//  ss.addMenu('Schedule Options', menuItems);
   SpreadsheetApp.getUi()
   .createMenu('Schedule Options')
   .addItem('New Month', 'doGet')
@@ -100,8 +94,12 @@ function holDoGet() {
 *
 */
 function createCal(startDate) {
-  createSheet_(startDate);
-  
+  if (SpreadsheetApp.getActive().getSheetByName(startDate) != null) {
+    throw Browser.msgBox('The calendar for ' + startDate + ' already exists.');
+  } else {
+    createSheet_(startDate);
+  }
+
   for(var i=1; i<=14; i++) SpreadsheetApp.getActiveSheet().setColumnWidth(i, 85);
   
   var month = startDate.split(" ");
@@ -460,7 +458,14 @@ function calcPayFormula(name, startPay, endPay, startRange, endRange) {
       while (row < rowReset + 8) {
         if (curCal[row][col] == name && curCal[row][col+1] != '') {
           var hoursString = curCal[row][col+1].split('-');
-          emList[nameId].addHours(hoursString[1] - hoursString[0]);
+          // Error check the hoursString.
+          if (hoursString.length != 2 || isNaN(hoursString[0]) || isNaN(hoursString[1])) {
+            return 'Err @ ' + curSheet.getRange(row+1, col+2).getA1Notation();
+          }else if (hoursString[1] - hoursString[0] < 0 || hoursString[1] - hoursString[0] > 24) {
+            return 'Err @ ' + curSheet.getRange(row+1, col+2).getA1Notation();
+          } else {
+            emList[nameId].addHours(hoursString[1] - hoursString[0]);
+          }
           row = rowReset;
           break;
         } else {
@@ -488,7 +493,6 @@ function calcPayFormula(name, startPay, endPay, startRange, endRange) {
       }
     }
   }
-  
   return emList[nameId].hours;
 }
 
@@ -876,15 +880,20 @@ function holDayChecker(name, startCheck, endCheck, startRange, endRange) {
 }
 
 /**
-* Add the pay period formula to the spreadsheet.
+* Add the formulas for the holiday checker to the spreadsheet.
+*
+* @param startCheck The day to start checking on.
+* @param endCheck The last day to end checking on.
 */
 function holDayCalc(startCheck, endCheck) {
   var ss = SpreadsheetApp.getActive(),
       s = ss.getActiveSheet();
   
+  // Turn dates into an array.
   var startArray = startCheck.split('-');
   var endArray = endCheck.split('-');
   
+  // The arrays are used to create new date objects.
   var startDate = new Date(startArray[0], startArray[1]-1, startArray[2], 0, 0, 0, 0),
       endDate = new Date(endArray[0], endArray[1]-1, endArray[2], 0, 0, 0, 0);
   
@@ -892,12 +901,14 @@ function holDayCalc(startCheck, endCheck) {
   var sSheetName = getSheetDate(startDate),
       eSheetName = getSheetDate(endDate);
   
+  // Get the start and end sheet to check on.
   var sStart = ss.getSheetByName(sSheetName);
   var sEnd = ss.getSheetByName(eSheetName);
   
   var startCal = getCalValues(sSheetName),
       endCal = getCalValues(eSheetName);
   
+  // The range of the start and end calendar to be inputed into the formulas.
   var sCalA = 'A1:N' + startCal.length;
   var eCalA = 'A1:N' + endCal.length;
   
@@ -921,7 +932,7 @@ function holDayCalc(startCheck, endCheck) {
   
   // Add formulas to the the array;
   for (var i=0, rowi = row; i<emList.length; i++, rowi++) {
-    formulas[i] = ["=calcPayFormula(A" + rowi + "," + sPayA + "," + ePayA + ",'" + sSheetName + "'!" + sCalA + ",'" + eSheetName + "'!" + eCalA + ")"];
+    formulas[i] = ["=calcPayFormula(K" + rowi + "," + sPayA + "," + ePayA + ",'" + sSheetName + "'!" + sCalA + ",'" + eSheetName + "'!" + eCalA + ")"];
   }
   // Add the formulas to check total hours worked to the calendar.
   s.getRange(row, col, emList.length, 1).setFormulas(formulas).setHorizontalAlignment('right');
@@ -930,12 +941,14 @@ function holDayCalc(startCheck, endCheck) {
   for (var i=0, rowi = row; i<emList.length; i++, rowi++) {
     formulas[i] = ["=holDayChecker(K" + rowi + "," + sPayA + "," + ePayA + ",'" + sSheetName + "'!" + sCalA + ",'" + eSheetName + "'!" + eCalA + ")"];
   }
+  // Add the formula for checking days worked.
   s.getRange(row, col+1, emList.length, 1).setFormulas(formulas).setHorizontalAlignment('right');
   
-  //Overight the formulas array once again to store the very small average formula;
+  // Overight the formulas array once again to store the very small average formula;
   for (var i=0, rowi = row; i<emList.length; i++, rowi++) {
     formulas[i] = ["=customDivison(R[" + 0 + "]C[" + -2 + "],R[" + 0 + "]C[" + -1 + "])"];
   }
+  // Add the formula that finds average hours per day worked to the calendar.
   s.getRange(row, col+2, emList.length, 1).setFormulasR1C1(formulas).setHorizontalAlignment('right').setNumberFormat('0.00');
 }
 

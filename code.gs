@@ -144,11 +144,6 @@ function createEmployeeList(startDate) {
     var workDaysSet = setting.getRange(row, 2).getValue().split(',');
     
     // Test if there is an issue with the work days.
-//    if (testWorkDays(workDaysSet, name)) {
-//      setting.getRange(row, 2).setBackground('red');
-//    } else {
-//      setting.getRange(row, 2).setBackground('white');
-//    }
     
     //Find which days an employee works.
     var j = 0;
@@ -211,6 +206,12 @@ function populateEmployees(startDate) {
   month.setActiveRange(getCalRange(startDate)).setValues(cal);
 }
 
+/**
+* Find the starting day of the week for a month.
+*
+* @param {String} startDay The Name of the calendar page.
+* @return {Number} The number from 0-6 refering to a day of the week.
+*/
 function findDay_(startDay) {
   
   var strDate = startDay.split(" ");
@@ -223,6 +224,7 @@ function findDay_(startDay) {
     }
   }
  
+  // Create a new date object to find what the starting day of the week is for a month.
   var date = new Date(strDate[1], monthInt, 1, 0, 0, 0 ,0);
   var day = date.getDay();
   
@@ -230,7 +232,7 @@ function findDay_(startDay) {
 }
 
 /**
-* A function that to add day numbers to the calendar.
+* A function to add day numbers to the calendar.
 *
 * @param {Number} startDay The day the month starts on.
 */
@@ -332,6 +334,8 @@ function getHours_() {
 
 /**
 * Adds the store hours to the employees.
+*
+* @parma {String} startDate The calendar to add hours to.
 */
 function addHours(startDate) {
   var s = SpreadsheetApp.getActive().getSheetByName(startDate);
@@ -458,14 +462,19 @@ function calcPayFormula(name, startPay, endPay, startRange, endRange) {
       while (row < rowReset + 8) {
         if (curCal[row][col] == name && curCal[row][col+1] != '') {
           var hoursString = curCal[row][col+1].split('-');
+          
           // Error check the hoursString.
-          if (hoursString.length != 2 || isNaN(hoursString[0]) || isNaN(hoursString[1])) {
-            return 'Err @ ' + curSheet.getRange(row+1, col+2).getA1Notation();
-          }else if (hoursString[1] - hoursString[0] < 0 || hoursString[1] - hoursString[0] > 24) {
-            return 'Err @ ' + curSheet.getRange(row+1, col+2).getA1Notation();
-          } else {
-            emList[nameId].addHours(hoursString[1] - hoursString[0]);
+          if (hoursString.length != 2) throw 'Error @ ' + curSheet.getRange(row+1, col+2).getA1Notation() + '. The hours may be improperly formated.';
+          if (isNaN(hoursString[0]) || isNaN(hoursString[1])) throw 'Error @ ' + curSheet.getRange(row+1, col+2).getA1Notation() + 
+                                                                   '. The hours may contain text, or are improperly formatted.';
+          if (hoursString[1] - hoursString[0] < 0 || hoursString[1] - hoursString[0] > 12 || hoursString[1] < hoursString[0]) {
+            throw 'Error @ ' + curSheet.getRange(row+1, col+2).getA1Notation() + '. Reading that the employee has worked ' + (hoursString[1] - hoursString[0]) +
+              ' hours on the day containing cell ' + curSheet.getRange(row+1, col+2).getA1Notation() + 
+                '. Please make sure the hours are correctly formatted and in 24r time.';
           }
+          // If there are no errors add the hours.
+          emList[nameId].addHours(hoursString[1] - hoursString[0]);
+          
           row = rowReset;
           break;
         } else {
@@ -637,7 +646,7 @@ function getCalValues(startDate) {
 }
 
 /**
-* Get the range of the calender
+* Get the range of the calender.
 *
 * @param {String} startDate The name of the calender sheet to get the range of.
 * @return {Array} The array of data in the calender.

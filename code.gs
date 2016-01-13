@@ -94,12 +94,21 @@ function holDoGet() {
 *
 */
 function createCal(startDate) {
+  // Check if the format on the settings page is done correctly.
+  if(SpreadsheetApp.getActive().getSheetByName('Settings').getRange(2, 6) != 'Good') {
+    throw Browser.msgBox('The format for the work days (column B) is incorrect. Please fix any errors and retry');
+  }
+  if(SpreadsheetApp.getActive().getSheetByName('Settings').getRange(3, 6) != 'Good') {
+    throw Browser.msgBox('The format for the store hours (column D) is incorrect. Please fix any errors and retry');
+  }
+  
+  // Check if there is already a sheet created.
   if (SpreadsheetApp.getActive().getSheetByName(startDate) != null) {
     throw Browser.msgBox('The calendar for ' + startDate + ' already exists.');
   } else {
     createSheet_(startDate);
   }
-
+  
   for(var i=1; i<=14; i++) SpreadsheetApp.getActiveSheet().setColumnWidth(i, 85);
   
   var month = startDate.split(" ");
@@ -1015,6 +1024,78 @@ function holPayTemp(startDate) {
   }
   
   range.setValues(values);
+}
+
+/**
+* Checks the list of works hours to make sure the format is correct.
+*
+* @param {'10-17','10-18','10-18','10-18','10-18','10-18','10-17.5'} hours A list of works hours.
+* @return {String} A message that lets the user know the hours are the correct format.
+* @customFunction
+*/
+function storeHoursValidation(hours) {
+  for (var row = 0; row < hours.length; row++) {
+    for (var col = 0; col < hours[row].length; col++) {
+      var hrArray = hours[row][col].split('-');
+      
+      if (hrArray.length != 2 ||
+         isNaN(hrArray[0]) ||
+         isNaN(hrArray[1]) ||
+         hrArray[1] - hrArray[0] < 0) throw hours[row][col] + ' is not in proper format.';
+      
+    }
+  }
+  return 'Good';
+}
+
+/**
+* Checks the list of work days to make sure the format is correct.
+*
+* @param {String} days A list of work days.
+* @return {String} A message that lets the user know the work days are the correct format.
+* @customFunction
+*/
+function workDaysValidation(days) {
+  for (var row = 0; row < days.length; row++) {
+    for (var col = 0; col < days[row].length; col++) {
+      var dayArray = days[row][col].split(',');
+     
+      // Check if there is more than 7 days writen up.
+      if (dayArray.length > 7 ) throw 'RAWR';
+      
+      // Loop through the days for problems.
+      for(var i=0; i<dayArray.length; i++) {
+        // Check if there is a comma followed by nothing.
+        if (dayArray[i] == '' && i != 0 && dayArray[i+1] != '') throw 'Error: ' + dayArray[i] + ' Please make sure days are in two character short form, and there is no trailing commas.';
+        // Check and make sure all days are length 2.
+        if (dayArray[i].length != 2 && i != 0) throw 'Error: ' + dayArray[i] + ' Please make sure days are in two character short form, and there is no trailing commas.';
+      }
+      
+      // Make sure days are in order and in the list.
+      if (dayArray[0] != '') {
+        var cor = false;
+        for (var i=0, j=0; j<dayArray.length && i<cal_work_days.length; i++) {
+          // Check if there is a match in the list.
+          if (dayArray[j] == cal_work_days[i]) {
+            cor = true;
+            j++;
+          } else {
+            // False if there is no match.
+            cor = false;
+          }
+          // Make sure no days follow saturday.
+          if (dayArray[j] == 'sa' && j != dayArray.length - 1) {
+            cor = false;
+            break;
+          }
+        }
+        // Give and error if there is no matches to a day.
+        if (!cor) throw 'Days are in incorrect order or do not match the list.';
+      }
+      
+    }
+  }
+  return 'Good';
 }
 
 /**

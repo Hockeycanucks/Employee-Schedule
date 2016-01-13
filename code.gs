@@ -1038,11 +1038,12 @@ function storeHoursValidation(hours) {
     for (var col = 0; col < hours[row].length; col++) {
       var hrArray = hours[row][col].split('-');
       
-      if (hrArray.length != 2 ||
-         isNaN(hrArray[0]) ||
-         isNaN(hrArray[1]) ||
-         hrArray[1] - hrArray[0] < 0) throw hours[row][col] + ' is not in proper format.';
-      
+      // Make sure the hours are numbers.
+      if (isNaN(hrArray[0]) || isNaN(hrArray[1])) throw hours[row][col] + ' contains letters or symbols. Must only be numbers seperated by a "-".';
+      // Make sure the array is of length two.
+      if (hrArray.length != 2) throw hours[row][col] + ' is not in the proper format. ex) 10-18';
+      // Make sure there is not negative hours in a day
+      if (hrArray[1] - hrArray[0] < 0) throw hours[row][col] + ' would result in a day being negative time. Make sure values are in 24hr time. ex) 10-18';
     }
   }
   return 'Good';
@@ -1092,7 +1093,6 @@ function workDaysValidation(days) {
         // Give and error if there is no matches to a day.
         if (!cor) throw 'Days are in incorrect order or do not match the list.';
       }
-      
     }
   }
   return 'Good';

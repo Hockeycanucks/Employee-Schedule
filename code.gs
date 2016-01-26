@@ -95,10 +95,10 @@ function holDoGet() {
 */
 function createCal(startDate) {
   // Check if the format on the settings page is done correctly.
-  if(SpreadsheetApp.getActive().getSheetByName('Settings').getRange(2, 6) != 'Good') {
+  if(SpreadsheetApp.getActive().getSheetByName('Settings').getRange(2, 6).getValue() != 'Good') {
     throw Browser.msgBox('The format for the work days (column B) is incorrect. Please fix any errors and retry');
   }
-  if(SpreadsheetApp.getActive().getSheetByName('Settings').getRange(3, 6) != 'Good') {
+  if(SpreadsheetApp.getActive().getSheetByName('Settings').getRange(3, 6).getValue() != 'Good') {
     throw Browser.msgBox('The format for the store hours (column D) is incorrect. Please fix any errors and retry');
   }
   
@@ -625,7 +625,9 @@ function ppTemplate(startDate) {
     setBorder(true, true, true, true, null, null).setBackground('#336600').setFontColor('white');
     s.getRange(stl-1, i*2, 2, 2).setBorder(true, true, true, true, null, null);
     s.getRange(stl-1, i*2).setValue('Start').setFontWeight('bold');
+    //s.getRange(stl-1, i*2).setFormulaR1C1("=dateValidationStart(R[" + 1 + "]C[" + 0 + "])");
     s.getRange(stl-1, i*2+1).setValue('End').setFontWeight('bold');
+    //s.getRange(stl-1, i*2+1).setFormulaR1C1("=dateValidationEnd(R[" + 1 + "]C[" + 0 + "])");
     s.getRange(stl+1, i*2, emList.length, 2).mergeAcross().setBorder(true, true, true, true, null, null).setHorizontalAlignment('right');
   }
   
@@ -749,7 +751,8 @@ function employeeVal(startDate) {
 */
 function addEmployee() {
   var name = Browser.inputBox('Enter the name of the employee.');
-
+  if(name == 'cancel') return;
+    
   var ss = SpreadsheetApp.getActive();
   var s = ss.getActiveSheet();
   var set = ss.getSheetByName('Settings');
@@ -979,11 +982,7 @@ function holDayCalc(startCheck, endCheck) {
 * @customFunction
 */
 function customDivison(value1, value2) {
-  if (value2 == 0) {
-    return 0;
-  } else {
-    return value1/value2;
-  }
+  return value2 == 0 ? 0 : value1/value2;
 }
 
 /**
@@ -1024,6 +1023,9 @@ function holPayTemp(startDate) {
   }
   
   range.setValues(values);
+  
+  //range = s.getRange(row+1, 11, 1, 3);
+  //range.setFormulasR1C1("=dateValidationStart(R[" + 0 + "]C[" + 1 + ")","","=dateValidationEnd(R[" + 0 + "]C[" + 1 + ")");
 }
 
 /**
@@ -1099,9 +1101,87 @@ function workDaysValidation(days) {
 }
 
 /**
+* Checks dates to make sure they are formatted correctly
+*
+* @param {String} input A date to be checked.
+* @return {String} Returns Start if the date is correct
+* @customFunction
+*/
+function dateValidationStart(input) {
+  // Say 'Start' if there is no value.
+  if (input == '') return 'Start';
+  
+  try {
+    var dayArray = [input.getMonth()+1, input.getDate(), input.getFullYear()];
+  } catch(err) {
+    throw 'Please make sure the date is formatted mm/dd/yyyy.';
+  }  
+  
+//  if (dayArray.length != 3) throw 'Please make sure the date is formatted mm/dd/yyyy.';
+//  if (isNaN(dayArray[0]) || isNaN(dayArray[0]) || isNaN(dayArray[0])) throw 'Please make sure the date is formatted mm/dd/yyyy.';
+//  if (dayArray[0] < 1 || dayArray[0] > 12) throw 'Please make sure the date is formatted mm/dd/yyyy.';
+//  if (dayArray[1] < 1 || dayArray[1] > 31) throw 'Please make sure the date is formatted mm/dd/yyyy.';
+//  // Sorry, the calender won't work after the year 3000.
+//  if (dayArray[2] < 2015 || dayArray[2] > 3000) throw 'Please make sure the date is formatted mm/dd/yyyy.';
+  
+  return 'Start';
+}
+
+/**
+* Checks dates to make sure they are formatted correctly
+*
+* @param {String} input A date to be checked.
+* @return {String} Returns Start if the date is correct
+* @customFunction
+*/
+function dateValidationEnd(input) {
+  // Say 'End' if there is no value.
+  if (input == '') return 'End';
+  
+  try {
+    var dayArray = [input.getMonth()+1, input.getDate(), input.getFullYear()];
+  } catch(err) {
+    throw 'Please make sure the date is formatted mm/dd/yyyy.';
+  }
+  
+//  if (dayArray.length != 3) throw 'Please make sure the date is formatted mm/dd/yyyy.';
+//  if (isNaN(dayArray[0]) || isNaN(dayArray[0]) || isNaN(dayArray[0])) throw 'Please make sure the date is formatted mm/dd/yyyy.';
+//  if (dayArray[0] < 1 || dayArray[0] > 12) throw 'Please make sure the date is formatted mm/dd/yyyy.';
+//  if (dayArray[1] < 1 || dayArray[1] > 31) throw 'Please make sure the date is formatted mm/dd/yyyy.';
+//  // Sorry, the calender won't work after the year 3000.
+//  if (dayArray[2] < 2015 || dayArray[2] > 3000) throw 'Please make sure the date is formatted mm/dd/yyyy.';
+//  
+  return 'End';
+}
+
+/**
+* Check if a day is a holiday given the month and year. 
+*
+* @param {String} startDate Name of the sheet but also contains year and month.
+* @return {Number} Returns the day the holiday is on.
+*/
+//function testForHoliday(startDate) {
+//  var dayArray = startDate.split(' ');
+//  var date = new Date(dayArray[1], 0, 1);
+//
+//  switch (dayArray[0]) {
+//    case 'January':
+//      return 1;
+//    case 'February':
+//      date.setMonth(1);
+//      return 1+8-date.getDay();
+//    case 'March':
+//      date.setMonth(2);
+//      return
+//  }
+//  
+//}
+
+/**
 * A test function to help test new methods for debugging.
 */
 function test() {
+  //Logger.log(testForHoliday('February 2015'));
   //var startDate = 'February 2016';
   //addHours(startDate);
   //deletePayPeriod(2)

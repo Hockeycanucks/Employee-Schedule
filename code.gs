@@ -67,6 +67,8 @@ function onOpen() {
   .addItem('Add New Employee', 'addEmployee')
   .addSeparator()
   .addItem('Holiday Time Checker', 'holDoGet')
+  .addSeparator()
+  .addItem('Help', 'showSidebar')
   .addToUi();
 }
 
@@ -87,6 +89,15 @@ function holDoGet() {
       .setHeight(125);
   SpreadsheetApp.getUi()
       .showModalDialog(htmlDlg, 'Calculate Holiday Pay');
+}
+
+function showSidebar() {
+  var html = HtmlService.createHtmlOutputFromFile('sidebar')
+      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
+      .setTitle('Help')
+      .setWidth(300);
+  SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
+      .showSidebar(html);
 }
 
 /**
@@ -757,10 +768,27 @@ function addEmployee() {
   var s = ss.getActiveSheet();
   var set = ss.getSheetByName('Settings');
   
-  // Make sure it is the right month
+  // If the user is on the setting sheet just add to the end of the employee list.
   if (s.getSheetName() == 'Settings') {
     Browser.msgBox('Please go to the month you need the employee added.');
     return;
+    
+    // Gather the list of employees on the setting sheet (assumes there will never be more than 25 employees).
+    var ls = set.getRange(2, 1, 25).getValues();
+    // Loop through the employees.
+    for (var i=0; i<ls.length; i++) {
+      // At the end of the employees leave the list.
+      if (ls[0][i] == null) {
+        ls[0][i] = name;
+        set.getRange(2, 1, 25).setValues(ls);
+        return;
+      }
+      // Crete a message is there is already an employee with that name.
+      if (ls[0][i] == name) {
+        Browser.msgBox('There is already an employee with that name entered.');
+        return;
+      }
+    }
   }
   
   // Get the current employee list.
@@ -788,6 +816,7 @@ function addEmployee() {
   // Add a new template to the current sheet.
   ppTemplate(s.getSheetName());
   holPayTemp(s.getSheetName());
+  employeeVal(s.getName());
   
   
 }
@@ -1064,7 +1093,7 @@ function workDaysValidation(days) {
       var dayArray = days[row][col].split(',');
      
       // Check if there is more than 7 days writen up.
-      if (dayArray.length > 7 ) throw 'RAWR';
+      if (dayArray.length > 7 ) throw 'An employee is set to work more than 7 days.';
       
       // Loop through the days for problems.
       for(var i=0; i<dayArray.length; i++) {
@@ -1181,6 +1210,8 @@ function dateValidationEnd(input) {
 * A test function to help test new methods for debugging.
 */
 function test() {
+  employeeVal('January 2016');
+  //Logger.log(SpreadsheetApp.getActiveSheet().getRange(2, 1, 25).getValues());
   //Logger.log(testForHoliday('February 2015'));
   //var startDate = 'February 2016';
   //addHours(startDate);

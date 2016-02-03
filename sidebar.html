@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+    <!-- The CSS package above applies Google styling to buttons and other elements. -->
+
+    <style>
+    .branding-below {
+      bottom: 56px;
+      top: 0;
+    }
+
+    .branding-text {
+      left: 7px;
+      position: relative;
+      top: 3px;
+    }
+
+    .col-contain {
+      overflow: hidden;
+    }
+
+    .col-one {
+      float: left;
+      width: 50%;
+    }
+
+    .logo {
+      vertical-align: middle;
+    }
+
+    .radio-spacer {
+      height: 20px;
+    }
+
+    .width-100 {
+      width: 100%;
+    }
+    h1 {
+       text-align: left;
+       font-weight: bold;
+    }
+    
+    p {
+       text-indent: 30px;
+       margin:0px 5px;
+    }
+    
+    ol {
+       margin-right: 5px;
+    }
+    
+    ul {
+       margin-right: 5px;
+    }
+    </style>
+  </head>
+  <body>
+     <h1 id="con"> Contents </h1>
+     
+     <nav role="navigation">
+     <ul>
+        <li> <button onclick="scrollWin('one')">Making a new month </button></li>
+        <li> <button onclick="scrollWin('two')">Settings sheet </button></li>
+        <li> <button onclick="scrollWin('three')">Adding a new employee to a month </button></li>
+        <li> <button onclick="scrollWin('four')">Adding a Pay Period </button></li>
+        <li> <button onclick="scrollWin('five')">Removing a Pay Period </button></li>
+        <li> <button onclick="scrollWin('six')">Holiday Time Checker </button></li>
+        <li> <button onclick="scrollWin('seven')">Printing a Month </button></li>
+     </ul>
+     </nav>
+  
+     <div>
+        <h2 id="one">Making a new month </h2>
+        <ol>
+           <li>Click the Schedule Options button on the upper toolbar.</li>
+           <li>Press the New Month option. </li>
+           <li>Choose the month and type in the year. </li>
+           <li>Press OK. </li>
+           <li>After a short period the new month should be created and will be the current sheet.</li>
+        </ol>
+        
+        <br>
+        <h2 id="two">Settings sheet </h2>
+        <ul>
+           <li>The Settings sheet contains all the employee names and what days they work. </li>
+           <li>It also contains the store hours. </li>
+           <li>Changing these values will decide who is put on the calendar and what days they work. </li>
+           <li>Make sure the days an employee works are in the correct format as a new month will not be created if there are errors. </li>
+           <li>The validation section will tell the user if there is an error and where. </li>
+        </ul>
+        
+        <br>
+        <h2 id="three">Adding a new employee to a month </h2>
+        <ol>
+           <li>Go to the month the new employee will be added on. </li>
+           <li>Click on the Schedule Options button on the upper toolbar. </li>
+           <li>Press the new employee button. </li>
+           <li>Type in the name of the employee into the dialog box. </li>
+           <li>Press OK and after a few moments the employee should be added to the month and Settings page. </li>
+        </ol>
+        
+        <br>
+        <h2 id="four">Adding a Pay Period </h2>
+        <ol>
+           <li>For ease of use make sure the schedule is open in Chrome. </li>
+           <li>Click the Schedule Options button on the upper toolbar. </li>
+           <li>Press the Add Pay Period button. </li>
+           <li>Use the date fields to choose the first and last day of the pay period. (Note: if not in chrome use the yyyy-mm-dd format) </li>
+           <li>Press OK and after a few momnets the next clear pay period at the bottom will be filled with the dates and formulas. </li>
+           <li>Note: The new period will always show up on the month it ends on.</li>
+        </ol>
+        
+        <br>
+        <h2 id="five">Removing a Pay Period </h2>
+        <ol>
+           <li>Click the Schedule Options button on the upper toolbar. </li>
+           <li>Hover over the Remove Pay Period button. </li>
+           <li>Choose the pay period to remove and press the respective button. </li>
+        </ol>
+        
+        <br>
+        <h2 id="six">Holiday Time Checker </h2>
+        <ol>
+           <li>For ease of use make sure the schedule is open in Chrome. </li>
+           <li>Click the Schedule Options button on the upper toolbar. </li>
+           <li>Press the Holiday Checker button. </li>
+           <li>Use the date fields to choose the day starting and end area that needs to be checked. (Note: if not in chrome use the yyyy-mm-dd format) </li>
+           <li>Press OK and after a few momnets the area maked Holiday Time Checker will display the required formulas. </li>
+        </ol>
+        
+        <br>
+        <h2 id="seven">Printing a Month </h2>
+        <ol>
+           <li>Go to the month that needs to be printed. </li>
+           <li>On the upper toolbar press File and then Print or ⌘P on the keyboard. </li>
+           <li>Under the Options section, select Current Sheet and Include Sheet Names. No other box needs to be checked. </li>
+           <li>Paper Size should be Letter. </li>
+           <li>Under Layout select Fit to Width and Portait. </li>
+           <li>Press Print. </li>
+        </ol>
+        
+     </div>
+     
+     <script>
+     //Finds y value of given object
+     function findPos(obj) {
+        var curtop = 0;
+        if (obj.offsetParent) {
+           do {
+              curtop += obj.offsetTop;
+           } while (obj = obj.offsetParent);
+              return [curtop];
+        }
+     }
+     </script>
+     <script>
+     function scrollWin(idName) {
+        window.scrollTo(0, findPos(document.getElementById(idName)));
+     }
+     </script>
+  </body>
+</html>

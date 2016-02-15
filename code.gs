@@ -136,6 +136,8 @@ function createCal(startDate) {
   ppTemplate(startDate);
   
   holPayTemp(startDate);
+  
+  protection(startDate);
 }
 
 function addPayPeriod(){
@@ -1184,6 +1186,30 @@ function dateValidationEnd(input) {
 }
 
 /**
+* Protects regions of the sheet that are not meant to be changed.
+*
+* @param {String} startDate The name of the sheet to apply the protection.
+*/
+function protection(startDate) {
+  var ss = SpreadsheetApp.getActive();
+  var s = ss.getSheetByName(startDate);
+  
+  // Find out if the calder has an extra row at the bottom
+  var endRow = s.getRange(52, 1).getValue() ? 62 : 52;
+  
+  // Protect the first two rows.
+  s.getRange('A1:N2').protect().setWarningOnly(true);
+  
+  // Protect the date headers.
+  for (var i=12; i<endRow; i+=10) {
+    s.getRange(i, 1, 1, 14).protect().setWarningOnly(true);
+  }
+  
+  // Protect the pay period and holiday checker areas. 
+  s.getRange(endRow, 1, 100, 14).protect().setWarningOnly(true);
+}
+
+/**
 * Check if a day is a holiday given the month and year. 
 *
 * @param {String} startDate Name of the sheet but also contains year and month.
@@ -1210,7 +1236,7 @@ function dateValidationEnd(input) {
 * A test function to help test new methods for debugging.
 */
 function test() {
-  employeeVal('January 2016');
+  protection('February 2016');
   //Logger.log(SpreadsheetApp.getActiveSheet().getRange(2, 1, 25).getValues());
   //Logger.log(testForHoliday('February 2015'));
   //var startDate = 'February 2016';

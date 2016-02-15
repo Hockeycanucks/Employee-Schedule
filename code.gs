@@ -140,15 +140,24 @@ function createCal(startDate) {
   protection(startDate);
 }
 
+/**
+* Launchs the window for a new pay period.
+*/
 function addPayPeriod(){
   var htmlDlg = HtmlService.createHtmlOutputFromFile('pp')
       .setSandboxMode(HtmlService.SandboxMode.IFRAME)
-      .setWidth(400)
-      .setHeight(125);
+      .setWidth(450)
+      .setHeight(135);
   SpreadsheetApp.getUi()
       .showModalDialog(htmlDlg, 'New Pay Period');
 }
 
+/**
+* Creates a list of employees based of the settings page
+*
+* @param {String} startDate I don't know why this is needed here, but
+* I am scared to remove it...
+*/
 function createEmployeeList(startDate) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();  
   var month = ss.getSheetByName(startDate);
@@ -529,13 +538,29 @@ function calcPayFormula(name, startPay, endPay, startRange, endRange) {
 
 /**
 * Add the pay period formula to the spreadsheet.
+*
+* @param {String} startPay The start of the pay period.
+* @param {String} endPay The end of the pay period.
 */
 function calcPay(startPay, endPay) {
   var ss = SpreadsheetApp.getActive();
   
+  // Date error checking. Make sure the date sting is the correct length
+  if(startPay.length != 10 || endPay != 10) {
+    throw Browser.msgBox('Please make sure the format is "YYYY-MM-DD" when inputing the dates');
+  }
+  
+  // Split the date arrays so they can be read as numbers and turned into a date.
   var startArray = startPay.split('-');
   var endArray = endPay.split('-');
   
+  // Make sure dates are only numbers.
+  if (isNaN(startArray[0]) || isNaN(startArray[1]) || isNaN(startArray[2]) ||
+    isNan(endArray[0]) || isNan(endArray[1]) || isNan(endArray[2])) {
+    throw Browser.msgBox('Please make sure the format is "YYYY-MM-DD" when inputing the dates');
+  }
+  
+  // Create the date objects to make date manipulations easier.
   var startDate = new Date(startArray[0], startArray[1]-1, startArray[2], 0, 0, 0, 0),
       endDate = new Date(endArray[0], endArray[1]-1, endArray[2], 0, 0, 0, 0);
   
@@ -1034,7 +1059,7 @@ function holPayTemp(startDate) {
   s.getRange(row, 11, 1, 4).merge().setBorder(true, true, true, true, false, false).setHorizontalAlignment('center');
   s.getRange(row+1, 11, 1, 2).setBorder(true, true, true, true, false, false);
   s.getRange(row+1, 13, 1, 2).setBorder(true, true, true, true, false, false);
-  s.getRange(row+2, 11, 1, 4).setBorder(true, true, true, true, true, false);
+  s.getRange(row+2, 11, 1, 4).setBorder(true, true, true, true, true, false).setHorizontalAlignment('center');
   s.getRange(row+3, 11, emList.length, 4).setBorder(true, true, true, true, true, false);
   
   var range = s.getRange(row, 11, 3, 4);
@@ -1044,9 +1069,9 @@ function holPayTemp(startDate) {
                    ['Employees','Total Hours','Days Worked','Average']]);
   range.setBackgrounds([['#336600','','',''],['','','',''],['#336600','','','']]);
   range.setFontColors([['white','','',''],['','','',''],['white','','','']]);
-  range.setFontWeights([['bold','','',''],['bold','normal','bold','normal'],['bold','bold','bold','bold']])
+  range.setFontWeights([['bold','','',''],['bold','normal','bold','normal'],['bold','bold','bold','bold']]);
   
-  range = s.getRange(row+3, 11, emList.length)
+  range = s.getRange(row+3, 11, emList.length);
   var values = range.getValues();
   
   for (var i=0; i<emList.length; i++) {
